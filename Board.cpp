@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <sstream>
 #include "Board.h"
+#include "BitboardUtils.h"
 
 Board::Board() {
 
@@ -129,7 +130,7 @@ void Board::parse_fen(const std::string& fen) {
 		file++;
 	}
 
-	if (rank != 0 || file != 0)
+	if (rank != 0 || file != 8)
 		throw std::runtime_error("Invalid FEN: board placement incomplete");
 
 	if (side_to_move == "w") {
@@ -189,7 +190,7 @@ void Board::print_board() const {
 		std::cout << rank + 1 << "	";
 		for (int file = 0; file < 8; ++file) {
 			int sq = this->squareIndex(file, rank);
-			std::cout << this->piece_at(sq); << ' ';
+			std::cout << this->piece_at(sq) << ' ';
 		}
 		
 		std::cout << "\n";
@@ -221,7 +222,7 @@ const bool& Board::canBlackKingsideCastle() const {
 }
 
 const bool& Board::canBlackQueensideCastle() const {
-	return this->black_queenside_castle();
+	return this->black_queenside_castle;
 }
 
 const int& Board::getEnPassantSquare() const {
@@ -234,4 +235,164 @@ const int& Board::getHalfmoveClock() const {
 
 const int& Board::getFullmoveNum() const {
 	return this->fullmove_num;
+}
+
+
+uint64_t Board::whiteOccupancy() const {
+	return pieces[static_cast<int>(Piece::WP)] |
+		   pieces[static_cast<int>(Piece::WN)] |
+		   pieces[static_cast<int>(Piece::WB)] |
+		   pieces[static_cast<int>(Piece::WR)] |
+		   pieces[static_cast<int>(Piece::WQ)] |
+		   pieces[static_cast<int>(Piece::WK)];
+}
+
+uint64_t Board::blackOccupancy() const {
+	return pieces[static_cast<int>(Piece::BP)] |
+		   pieces[static_cast<int>(Piece::BN)] |
+		   pieces[static_cast<int>(Piece::BB)] |
+		   pieces[static_cast<int>(Piece::BR)] |
+		   pieces[static_cast<int>(Piece::BQ)] |
+		   pieces[static_cast<int>(Piece::BK)];
+}
+
+uint64_t Board::allOccupancy() const {
+	return this->whiteOccupancy() | this->blackOccupancy();
+}
+
+uint64_t Board::sideOccupancy(bool white) const {
+	return white ? this->whiteOccupancy() : this->blackOccupancy();
+}
+
+uint64_t Board::enemyOccupancy(bool white) const {
+	return white ? this->blackOccupancy() : this->blackOccupancy();
+}
+
+uint64_t Board::isSquareAttacked(int square, bool byWhite) const {
+	int knightPiece = byWhite ? static_cast<int>(Piece::WN) : static_cast<int>(Piece::BN);
+	uint64_t knights = pieces[knightPiece];
+
+	while (knights) {
+		int from = __builtin_ctzll(knights);
+		knights &= knights - 1;
+
+		if (knightAttacksFrom(from) & bit(square)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Board::isInCheck(bool whiteKing) const {
+	int kingPiece = whiteKing ? static_cast<int>(Piece::WK) : static_cast<int>(Piece::BK);
+	uint64_t kingBoard = this->pieces[kingPiece];
+
+	if (kingBoard == 0) {
+		throw std::runtime_error("King missing from board");
+	}
+
+	// returns the number of trailing 0 bits in an unsigned long long
+	int kingSquare = __builtin_ctzll(kingBoard);
+	return isSquareAttacked(kingSquare, !whiteKing);
+
+
+}
+
+
+
+
+uint64_t Board::knightAttacksFrom(int square) const {
+	uint64_t attacks = 0;
+
+	int f = file_of(square);
+	int r = rank_of(square);
+
+	const int df[8] = {1, 2, 2, 1, -1, -2, -2, -1};
+	const int dr[8] = {2, 1, -1, -2, -2, -1, 1, 2};
+
+	for (int i = 0; i < 8; i++) {
+		int nf = f + df[i];
+		int nr = f + dr[i];
+
+		if (nf >= 0 && nf < 8 && nr >= 0 && nr < 8)
+			attacks |= bit(nr * 8 + nf);
+	}
+
+	return attacks;
+}
+
+uint64_t Board::kingAttacksFrom(int square) const {
+	uint64_t attacks = 0;
+	int f = file_of(square);
+	int r = rank_of(square);
+
+	const int df[8] = {1, 1, 0, -1, -1, -1, 0, 1};
+	const int dr[8] = {0, 1, 1, 1, 0, -1, -1, -1};
+
+	for (int i = 0; i < 8; i++) {
+		int nf = f + df[i];
+		int nr = r + dr[i];
+		
+		if (nf >= 0 && nf < 8 && nr >= 0 && nr < 8)
+			attacks |= bit(nr * 8 + nf);
+	}
+	return attacks;
+}
+
+uint64_t Board::slidingAttacksFrom(
+	int square,
+	uint64_t occupied,
+	const std::vector<std::pair<int, int>>& directions
+) const {
+	uint64_t attacks = 0;
+	int startFile = file_of(square);
+	int startRank = rank_of(square);
+
+	for (auto [df, dr] : directions) {
+		int file = startFile + df;
+		int rank = startRank + dr;
+
+		while (file >= 0 && file < 8 && rank >= 0 && rank < 8) {
+			int target = rank * 8 + file;
+
+			attacks |= bit(target);
+
+			if(is_set(occupied, target))
+				break;
+
+			file += df;
+			rank += dr;
+
+		}
+	}
+	return attacks;
+}
+
+uint64_t Board::bishopAttacksFrom(int square, uint64_t occupied) const {
+	static const std::vector<std::pair<int, int>> dirs = {
+		{1, 1},
+		{-1, 1},
+		{1, -1},
+		{-1, -1}
+	};
+
+	return slidingAttacksFrom(square, occupied, dirs);
+}
+
+uint64_t Board::rookAttacksFrom(int square, uint64_t occupied) const {
+	static const std::vector<std::pair<int, int>> dirs = {
+		{1, 0},
+		{-1, 0},
+		{0, 1},
+		{0, -1}
+	};
+
+	return slidingAttacksFrom(square, occupied, dirs);
+}
+
+uint64_t Board::queenAttacksFrom(int square, uint64_t occupied) const {
+	return bishopAttacksFrom(square, occupied) |
+		   rookAttacksFrom(square, occupied);  
+
 }
