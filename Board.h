@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <array>
 #include <string>
-#include "Pieces.h"
+#include "Piece.h"
 
 class Board {
 public:
@@ -13,21 +13,21 @@ public:
 	int char_to_piece(char c);
 	int algebraic_to_square(const std::string& square);
 	void parse_fen(const std::string& fen);
-	char piece_at(int square);
-	void print_board();	
+	char piece_at(int square) const;
+	void print_board() const;	
 	// getters	
-	std::array<uint64_t, Pieces::PIECE_COUNT> getPieces();
-	bool isWhiteToMove();
-	bool canWhiteKingsideCastle();
-	bool canWhiteQueensideCastle();
-	bool canBlackKingsideCastle();
-	bool canBlackQueensideCastle();
-	int getEnPassantSquare();
-	int getHalfmoveClock();
-	int getFullmoveNum();
+	const std::array<uint64_t, static_cast<int>(Piece::PIECE_COUNT)>& getPieces();
+	const bool& isWhiteToMove() const;
+	const bool& canWhiteKingsideCastle() const;
+	const bool& canWhiteQueensideCastle() const;
+	const bool& canBlackKingsideCastle() const;
+	const bool& canBlackQueensideCastle() const;
+	const int& getEnPassantSquare() const;
+	const int& getHalfmoveClock() const;
+	const int& getFullmoveNum() const;
 
 private:
-	std::array<uint64_t, PIECE_COUNT> pieces{};
+	std::array<uint64_t, static_cast<int>(Piece::PIECE_COUNT)> pieces{};
 	bool white_to_move = true;
 	bool white_kingside_castle = false;
 	bool white_queenside_castle = false;

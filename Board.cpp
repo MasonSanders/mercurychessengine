@@ -14,29 +14,29 @@ int Board::squareIndex(int file, int rank) {
 int Board::char_to_piece(char c) {
 	switch (c) {
 		case 'P':
-			return Pieces::WP;
+			return static_cast<int>(Piece::WP);
 		case 'N':
-			return Pieces::WN;
+			return static_cast<int>(Piece::WN);
 		case 'B':
-			return Pieces::WB;
+			return static_cast<int>(Piece::WB);
 		case 'R':
-			return Pieces::WR;
+			return static_cast<int>(Piece::WR);
 		case 'Q':
-			return Pieces::WQ;
+			return static_cast<int>(Piece::WQ);
 		case 'K':
-			return Pieces::WK;
+			return static_cast<int>(Piece::WK);
 		case 'p':
-			return Pieces::BP;
+			return static_cast<int>(Piece::BP);
 		case 'n':
-			return Pieces::BN;
+			return static_cast<int>(Piece::BN);
 		case 'b':
-			return Pieces::BB;
+			return static_cast<int>(Piece::BB);
 		case 'r':
-			return Pieces::BR;
+			return static_cast<int>(Piece::BR);
 		case 'q':
-			return Pieces::BQ;
+			return static_cast<int>(Piece::BQ);
 		case 'k':
-			return Pieces::BK;
+			return static_cast<int>(Piece::BK);
 		default:
 			return -1;	
 	}
@@ -66,6 +66,18 @@ int Board::algebraic_to_square(const std::string& square) {
 }
 
 void Board::parse_fen(const std::string& fen) {
+	// prevent stale state.
+	this->pieces.fill(0);
+	this->white_to_move = true;
+	this->white_kingside_castle = false;
+	this->white_queenside_castle = false;
+	this->black_kingside_castle = false;
+	this->black_queenside_castle = false;
+	this->en_passant_square = -1;
+	this->halfmove_clock = 0;
+	this->fullmove_num = 1;
+
+
 	std::stringstream iss(fen);
 	std::string placement;
 	std::string side_to_move;
@@ -97,7 +109,7 @@ void Board::parse_fen(const std::string& fen) {
 		if (c >= '1' && c <= '8') {
 			file += c - '0';
 
-			if (file > 0)
+			if (file > 8)
 				throw std::runtime_error("Invalid FEN, too many squares in rank");
 
 			continue;
@@ -155,15 +167,15 @@ void Board::parse_fen(const std::string& fen) {
 }
 
 
-char Board::piece_at(int square) {
-	static constexpr std::array<char, Pieces::PIECE_COUNT> chars = {
+char Board::piece_at(int square) const {
+	static constexpr std::array<char, static_cast<int>(Piece::PIECE_COUNT)> chars = {
 		'P', 'N', 'B', 'R', 'Q', 'K',
 		'p', 'n', 'b', 'r', 'q', 'k'
 	};
 
 	uint64_t mask = 1ULL << square;
 	
-	for (int p = 0; p < Pieces::PIECE_COUNT; ++p) {
+	for (int p = 0; p < static_cast<int>(Piece::PIECE_COUNT); ++p) {
 		if (this->pieces[p] & mask)
 			return chars[p];
 	}
@@ -172,7 +184,7 @@ char Board::piece_at(int square) {
 
 }
 
-void Board::print_board() {
+void Board::print_board() const {
 	for (int rank = 7; rank >= 0; rank--) {
 		std::cout << rank + 1 << "	";
 		for (int file = 0; file < 8; ++file) {
@@ -188,38 +200,38 @@ void Board::print_board() {
 
 //getters
 
-std::array<uint64_t, Pieces::PIECE_COUNT> Board::getPieces(){
+const std::array<uint64_t, static_cast<int>(Piece::PIECE_COUNT)>& Board::getPieces() const {
 	return this->pieces;
 }
 
-bool Board::isWhiteToMove() {
+const bool& Board::isWhiteToMove() const {
 	return this->white_to_move;
 }
 
-bool Board::canWhiteKingsideCastle() {
+const bool& Board::canWhiteKingsideCastle() const {
 	return this->white_kingside_castle;
 }
 
-bool Board::canWhiteQueensideCastle() {
+const bool& Board::canWhiteQueensideCastle() const {
 	return this->white_queenside_castle;
 }
 
-bool Board::canBlackKingsideCastle() {
+const bool& Board::canBlackKingsideCastle() const {
 	return this->black_kingside_castle;
 }
 
-bool Board::canBlackQueensideCastle() {
+const bool& Board::canBlackQueensideCastle() const {
 	return this->black_queenside_castle();
 }
 
-int Board::getEnPassantSquare() {
+const int& Board::getEnPassantSquare() const {
 	return this->en_passant_square;
 }
 
-int Board::getHalfmoveClock() {
+const int& Board::getHalfmoveClock() const {
 	return this->halfmove_clock;
 }
 
-int Board::getFullmoveNum() {
+const int& Board::getFullmoveNum() const {
 	return this->fullmove_num;
 }
