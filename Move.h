@@ -11,6 +11,6 @@ struct Move {
     MoveType type;
 
     int promotion_piece = -1;
-}
+};
 
 #endif
