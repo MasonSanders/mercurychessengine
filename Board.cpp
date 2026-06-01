@@ -883,3 +883,19 @@ bool Board::isCheckmate() const {
 bool Board::isStalemate() const {
 	return !isInCheck(white_to_move) && generateLegalMoves().empty();
 }
+
+uint64_t Board::perft(int depth) const {
+	if (depth == 0)
+		return 1;
+
+	uint64_t nodes = 0;
+	std::vector<Move> moves = generateLegalMoves();
+
+	for (const Move& move : moves) {
+		Board copy = *this;
+		copy.makeMove(move);
+		nodes += copy.perft(depth - 1);
+	}
+
+	return nodes;
+}

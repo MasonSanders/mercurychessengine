@@ -75,6 +75,9 @@ public:
 	bool isCheckmate() const;
 	bool isStalemate() const;
 
+	// check for correct move generation
+	uint64_t perft(int depth) const;
+
 
 
 

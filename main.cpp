@@ -7,6 +7,7 @@
 #include "Board.h"
 #include "Move.h"
 #include "MoveType.h"
+#include "Engine.h"
 
 std::string squareToString(int square) {
 	char file = static_cast<char>('a' + (square % 8));

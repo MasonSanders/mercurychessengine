@@ -2,10 +2,10 @@ CXX := g++
 CXXFLAGS := -std=c++23 -Wall -Wextra -Wpedantic -g
 
 TARGET := chess
-SRCS := main.cpp Board.cpp
+SRCS := main.cpp Board.cpp Engine.cpp
 OBJS := $(SRCS:.cpp=.o)
 
-HEADERS := Board.h Piece.h Move.h MoveType.h BitboardUtils.h
+HEADERS := Board.h Piece.h Move.h MoveType.h BitboardUtils.h Engine.h
 
 all: $(TARGET)
 
