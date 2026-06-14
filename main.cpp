@@ -51,26 +51,26 @@ std::string moveToString(const Move& move) {
 	return result;
 }
 
-int main(int argc, char* argv[]) {
-	Board board;
-
-    std::string startFen =
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
+int main() {
     try {
-        board.parse_fen(startFen);
+        constexpr int depth = 3;
+        const std::string fen =
+            "r3r1k1/ppp2ppp/2nb4/3q4/2P2pb1/1P1P1N2/PB2B1PP/R2Q1RK1 b - c3 0 12";
 
-        std::cout << "Starting position:\n";
+        Board board;
+        board.parse_fen(fen);
+
+        Engine engine;
+
+        std::cout << "Position:\n";
         board.print_board();
 
         std::vector<Move> legalMoves = board.generateLegalMoves();
+        SearchResult result = engine.findBestMove(board, depth);
 
-        std::cout << "\nLegal move count: " << legalMoves.size() << "\n\n";
-
-        for (const Move& move : legalMoves) {
-            std::cout << moveToString(move) << '\n';
-        }
-
+        std::cout << "\nLegal move count: " << legalMoves.size() << '\n';
+        std::cout << "Best move: " << moveToString(result.bestMove) << '\n';
+        std::cout << "Evaluation: " << result.evaluation << '\n';
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << '\n';
         return 1;

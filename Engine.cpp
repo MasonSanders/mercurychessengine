@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 #include "Engine.h"
@@ -57,4 +59,60 @@ int Engine::evaluate(const Board& board, int plyFromRoot) const {
     }
 
     return evaluateMaterial(board);
+}
+
+SearchResult Engine::findBestMove(const Board& board, int depth) const {
+    std::vector<Move> legalMoves = board.generateLegalMoves();
+
+    if (legalMoves.empty())
+        throw std::runtime_error("Cannot find a move: no legal moves available.");
+
+    Move bestMove = legalMoves.front();
+    int bestEvaluation = board.isWhiteToMove()
+        ? std::numeric_limits<int>::min()
+        : std::numeric_limits<int>::max();
+
+    for (const Move& move : legalMoves) {
+        Board copy = board;
+        copy.makeMove(move);
+
+        int evaluation = minimax(copy, depth - 1, 1);
+
+        if ((board.isWhiteToMove() && evaluation > bestEvaluation) ||
+            (!board.isWhiteToMove() && evaluation < bestEvaluation)) {
+            bestMove = move;
+            bestEvaluation = evaluation;
+        }
+    }
+
+    return {bestMove, bestEvaluation};
+}
+
+int Engine::minimax(const Board& board, int depth, int plyFromRoot) const {
+    if (depth <= 0)
+        return evaluate(board, plyFromRoot);
+
+    std::vector<Move> legalMoves = board.generateLegalMoves();
+
+    if (legalMoves.empty())
+        return evaluate(board, plyFromRoot);
+
+    int bestEvaluation = board.isWhiteToMove()
+        ? std::numeric_limits<int>::min()
+        : std::numeric_limits<int>::max();
+
+    for (const Move& move : legalMoves) {
+        Board copy = board;
+        copy.makeMove(move);
+
+        int evaluation = minimax(copy, depth - 1, plyFromRoot + 1);
+
+        if (board.isWhiteToMove()) {
+            bestEvaluation = std::max(bestEvaluation, evaluation);
+        } else {
+            bestEvaluation = std::min(bestEvaluation, evaluation);
+        }
+    }
+
+    return bestEvaluation;
 }

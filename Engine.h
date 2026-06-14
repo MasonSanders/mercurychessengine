@@ -6,6 +6,11 @@
 #include "Board.h"
 #include "Move.h"
 
+struct SearchResult {
+    Move bestMove;
+    int evaluation;
+};
+
 class Engine {
 public:
     Engine();
@@ -14,8 +19,11 @@ public:
 
     int evaluateMaterial(const Board& board) const;
     int evaluate(const Board& board, int plyFromRoot = 0) const;
+    SearchResult findBestMove(const Board& board, int depth) const;
 
 private:
+    int minimax(const Board& board, int depth, int plyFromRoot) const;
+
     std::mt19937 rng;
 
     static constexpr int MATE_SCORE = 100000;
