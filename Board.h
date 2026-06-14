@@ -24,14 +24,14 @@ public:
 	
 	// getters	
 	const std::array<uint64_t, static_cast<int>(Piece::PIECE_COUNT)>& getPieces() const;
-	const bool isWhiteToMove() const;
-	const bool canWhiteKingsideCastle() const;
-	const bool canWhiteQueensideCastle() const;
-	const bool canBlackKingsideCastle() const;
-	const bool canBlackQueensideCastle() const;
-	const int getEnPassantSquare() const;
-	const int getHalfmoveClock() const;
-	const int getFullmoveNum() const;
+	bool isWhiteToMove() const;
+	bool canWhiteKingsideCastle() const;
+	bool canWhiteQueensideCastle() const;
+	bool canBlackKingsideCastle() const;
+	bool canBlackQueensideCastle() const;
+	int getEnPassantSquare() const;
+	int getHalfmoveClock() const;
+	int getFullmoveNum() const;
 
 	// helpers
 	uint64_t whiteOccupancy() const;

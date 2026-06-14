@@ -225,35 +225,35 @@ const std::array<uint64_t, static_cast<int>(Piece::PIECE_COUNT)>& Board::getPiec
 	return this->pieces;
 }
 
-const bool Board::isWhiteToMove() const {
+bool Board::isWhiteToMove() const {
 	return this->white_to_move;
 }
 
-const bool Board::canWhiteKingsideCastle() const {
+bool Board::canWhiteKingsideCastle() const {
 	return this->white_kingside_castle;
 }
 
-const bool Board::canWhiteQueensideCastle() const {
+bool Board::canWhiteQueensideCastle() const {
 	return this->white_queenside_castle;
 }
 
-const bool Board::canBlackKingsideCastle() const {
+bool Board::canBlackKingsideCastle() const {
 	return this->black_kingside_castle;
 }
 
-const bool Board::canBlackQueensideCastle() const {
+bool Board::canBlackQueensideCastle() const {
 	return this->black_queenside_castle;
 }
 
-const int Board::getEnPassantSquare() const {
+int Board::getEnPassantSquare() const {
 	return this->en_passant_square;
 }
 
-const int Board::getHalfmoveClock() const {
+int Board::getHalfmoveClock() const {
 	return this->halfmove_clock;
 }
 
-const int Board::getFullmoveNum() const {
+int Board::getFullmoveNum() const {
 	return this->fullmove_num;
 }
 
