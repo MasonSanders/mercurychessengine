@@ -53,7 +53,7 @@ std::string moveToString(const Move& move) {
 
 int main() {
     try {
-        constexpr int depth = 3;
+        constexpr int depth = 5;
         const std::string fen =
             "r3r1k1/ppp2ppp/2nb4/3q4/2P2pb1/1P1P1N2/PB2B1PP/R2Q1RK1 b - c3 0 12";
 

@@ -71,24 +71,32 @@ SearchResult Engine::findBestMove(const Board& board, int depth) const {
     int bestEvaluation = board.isWhiteToMove()
         ? std::numeric_limits<int>::min()
         : std::numeric_limits<int>::max();
+    int alpha = std::numeric_limits<int>::min();
+    int beta = std::numeric_limits<int>::max();
 
     for (const Move& move : legalMoves) {
         Board copy = board;
         copy.makeMove(move);
 
-        int evaluation = minimax(copy, depth - 1, 1);
+        int evaluation = minimax(copy, depth - 1, 1, alpha, beta);
 
         if ((board.isWhiteToMove() && evaluation > bestEvaluation) ||
             (!board.isWhiteToMove() && evaluation < bestEvaluation)) {
             bestMove = move;
             bestEvaluation = evaluation;
         }
+
+        if (board.isWhiteToMove()) {
+            alpha = std::max(alpha, bestEvaluation);
+        } else {
+            beta = std::min(beta, bestEvaluation);
+        }
     }
 
     return {bestMove, bestEvaluation};
 }
 
-int Engine::minimax(const Board& board, int depth, int plyFromRoot) const {
+int Engine::minimax(const Board& board, int depth, int plyFromRoot, int alpha, int beta) const {
     if (depth <= 0)
         return evaluate(board, plyFromRoot);
 
@@ -105,13 +113,18 @@ int Engine::minimax(const Board& board, int depth, int plyFromRoot) const {
         Board copy = board;
         copy.makeMove(move);
 
-        int evaluation = minimax(copy, depth - 1, plyFromRoot + 1);
+        int evaluation = minimax(copy, depth - 1, plyFromRoot + 1, alpha, beta);
 
         if (board.isWhiteToMove()) {
             bestEvaluation = std::max(bestEvaluation, evaluation);
+            alpha = std::max(alpha, bestEvaluation);
         } else {
             bestEvaluation = std::min(bestEvaluation, evaluation);
+            beta = std::min(beta, bestEvaluation);
         }
+
+        if (beta <= alpha)
+            break;
     }
 
     return bestEvaluation;

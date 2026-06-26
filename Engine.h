@@ -22,7 +22,7 @@ public:
     SearchResult findBestMove(const Board& board, int depth) const;
 
 private:
-    int minimax(const Board& board, int depth, int plyFromRoot) const;
+    int minimax(const Board& board, int depth, int plyFromRoot, int alpha, int beta) const;
 
     std::mt19937 rng;
 
