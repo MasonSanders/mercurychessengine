@@ -1,7 +1,7 @@
 CXX := g++
 CXXFLAGS := -std=c++23 -Wall -Wextra -Wpedantic -O3 -DNDEBUG -pthread
 
-TARGET := chess
+TARGET := mercury
 SRCS := main.cpp Board.cpp Engine.cpp TranspositionTable.cpp
 OBJS := $(SRCS:.cpp=.o)
 
