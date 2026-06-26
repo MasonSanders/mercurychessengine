@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++23 -Wall -Wextra -Wpedantic -O3 -DNDEBUG
+CXXFLAGS := -std=c++23 -Wall -Wextra -Wpedantic -O3 -DNDEBUG -pthread
 
 TARGET := chess
 SRCS := main.cpp Board.cpp Engine.cpp TranspositionTable.cpp

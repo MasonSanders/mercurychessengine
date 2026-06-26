@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <atomic>
 #include <limits>
 #include <stdexcept>
+#include <thread>
 #include <vector>
 #include "Engine.h"
 
@@ -51,8 +53,6 @@ int Engine::evaluate(const Board& board, int plyFromRoot) const {
 }
 
 SearchResult Engine::findBestMove(const Board& board, int depth) const {
-    transpositionTable.clear();
-
     std::vector<Move> legalMoves = board.generateLegalMoves();
 
     if (legalMoves.empty())
@@ -60,43 +60,83 @@ SearchResult Engine::findBestMove(const Board& board, int depth) const {
 
     orderMoves(legalMoves, board);
 
+    std::vector<int> evaluations(legalMoves.size());
+    std::atomic<std::size_t> nextMove{0};
+
+    unsigned int threadCount = std::thread::hardware_concurrency();
+    if (threadCount == 0)
+        threadCount = 1;
+
+    threadCount = std::min<unsigned int>(
+        threadCount,
+        static_cast<unsigned int>(legalMoves.size())
+    );
+
+    std::vector<std::thread> workers;
+    workers.reserve(threadCount);
+
+    for (unsigned int worker = 0; worker < threadCount; ++worker) {
+        workers.emplace_back([&, depth]() {
+            TranspositionTable localTable;
+
+            while (true) {
+                std::size_t moveIndex = nextMove.fetch_add(1);
+
+                if (moveIndex >= legalMoves.size())
+                    break;
+
+                Board copy = board;
+                copy.makeMove(legalMoves[moveIndex]);
+
+                evaluations[moveIndex] = minimax(
+                    copy,
+                    depth - 1,
+                    1,
+                    std::numeric_limits<int>::min(),
+                    std::numeric_limits<int>::max(),
+                    localTable
+                );
+            }
+        });
+    }
+
+    for (std::thread& worker : workers) {
+        worker.join();
+    }
+
     Move bestMove = legalMoves.front();
     int bestEvaluation = board.isWhiteToMove()
         ? std::numeric_limits<int>::min()
         : std::numeric_limits<int>::max();
-    int alpha = std::numeric_limits<int>::min();
-    int beta = std::numeric_limits<int>::max();
 
-    for (const Move& move : legalMoves) {
-        Board copy = board;
-        copy.makeMove(move);
-
-        int evaluation = minimax(copy, depth - 1, 1, alpha, beta);
+    for (std::size_t i = 0; i < legalMoves.size(); ++i) {
+        int evaluation = evaluations[i];
 
         if ((board.isWhiteToMove() && evaluation > bestEvaluation) ||
             (!board.isWhiteToMove() && evaluation < bestEvaluation)) {
-            bestMove = move;
+            bestMove = legalMoves[i];
             bestEvaluation = evaluation;
-        }
-
-        if (board.isWhiteToMove()) {
-            alpha = std::max(alpha, bestEvaluation);
-        } else {
-            beta = std::min(beta, bestEvaluation);
         }
     }
 
     return {bestMove, bestEvaluation};
 }
 
-int Engine::minimax(const Board& board, int depth, int plyFromRoot, int alpha, int beta) const {
+int Engine::minimax(
+    const Board& board,
+    int depth,
+    int plyFromRoot,
+    int alpha,
+    int beta,
+    TranspositionTable& table
+) const {
     if (depth <= 0)
         return evaluate(board, plyFromRoot);
 
     int originalAlpha = alpha;
     int originalBeta = beta;
 
-    if (std::optional<TTEntry> entry = transpositionTable.probe(board, depth, alpha, beta)) {
+    if (std::optional<TTEntry> entry = table.probe(board, depth, alpha, beta)) {
         return entry->evaluation;
     }
 
@@ -122,7 +162,7 @@ int Engine::minimax(const Board& board, int depth, int plyFromRoot, int alpha, i
         Board copy = board;
         copy.makeMove(move);
 
-        int evaluation = minimax(copy, depth - 1, plyFromRoot + 1, alpha, beta);
+        int evaluation = minimax(copy, depth - 1, plyFromRoot + 1, alpha, beta, table);
 
         if (board.isWhiteToMove()) {
             bestEvaluation = std::max(bestEvaluation, evaluation);
@@ -136,7 +176,7 @@ int Engine::minimax(const Board& board, int depth, int plyFromRoot, int alpha, i
             break;
     }
 
-    transpositionTable.store(board, depth, bestEvaluation, originalAlpha, originalBeta);
+    table.store(board, depth, bestEvaluation, originalAlpha, originalBeta);
 
     return bestEvaluation;
 }
