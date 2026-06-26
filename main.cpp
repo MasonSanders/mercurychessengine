@@ -52,28 +52,50 @@ std::string moveToString(const Move& move) {
 }
 
 int main() {
-    try {
-        constexpr int depth = 8;
-        const std::string fen =
-            "r3r1k1/ppp2ppp/2nb4/3q4/2P2pb1/1P1P1N2/PB2B1PP/R2Q1RK1 b - c3 0 12";
+    constexpr int depth = 8;
+    Engine engine;
+    std::string fen;
 
-        Board board;
-        board.parse_fen(fen);
+    std::cout << "Enter a FEN position, or press Ctrl+D to quit.\n";
 
-        Engine engine;
+    while (true) {
+        std::cout << "\nFEN: ";
 
-        std::cout << "Position:\n";
-        board.print_board();
+        if (!std::getline(std::cin, fen)) {
+            std::cout << '\n';
+            break;
+        }
 
-        std::vector<Move> legalMoves = board.generateLegalMoves();
-        SearchResult result = engine.findBestMove(board, depth);
+        if (fen.empty()) {
+            std::cerr << "Invalid FEN: input cannot be empty. Try again.\n";
+            continue;
+        }
 
-        std::cout << "\nLegal move count: " << legalMoves.size() << '\n';
-        std::cout << "Best move: " << moveToString(result.bestMove) << '\n';
-        std::cout << "Evaluation: " << result.evaluation << '\n';
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << '\n';
-        return 1;
+        try {
+            Board board;
+            board.parse_fen(fen);
+
+            std::cout << "Position:\n";
+            board.print_board();
+
+            std::vector<Move> legalMoves = board.generateLegalMoves();
+
+            if (legalMoves.empty()) {
+                std::cout << "\nLegal move count: 0\n";
+                std::cout << "No legal moves available.\n";
+                continue;
+            }
+
+            SearchResult result = engine.findBestMove(board, depth);
+
+            std::cout << "\nLegal move count: " << legalMoves.size() << '\n';
+            std::cout << "Best move: " << moveToString(result.bestMove) << '\n';
+            std::cout << "Evaluation: " << result.evaluation << '\n';
+        } catch (const std::exception& e) {
+            std::cerr << "Invalid FEN or position: " << e.what() << '\n';
+            std::cerr << "Please try again with a valid FEN.\n";
+        }
     }
+
 	return 0;
 }
