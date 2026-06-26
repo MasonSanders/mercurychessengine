@@ -5,6 +5,7 @@
 #include <array>
 #include "Board.h"
 #include "Move.h"
+#include "TranspositionTable.h"
 
 struct SearchResult {
     Move bestMove;
@@ -27,6 +28,7 @@ private:
     int moveOrderingScore(const Board& board, const Move& move) const;
 
     std::mt19937 rng;
+    mutable TranspositionTable transpositionTable;
 
     static constexpr int MATE_SCORE = 100000;
 

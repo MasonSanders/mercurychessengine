@@ -51,6 +51,8 @@ int Engine::evaluate(const Board& board, int plyFromRoot) const {
 }
 
 SearchResult Engine::findBestMove(const Board& board, int depth) const {
+    transpositionTable.clear();
+
     std::vector<Move> legalMoves = board.generateLegalMoves();
 
     if (legalMoves.empty())
@@ -91,6 +93,13 @@ int Engine::minimax(const Board& board, int depth, int plyFromRoot, int alpha, i
     if (depth <= 0)
         return evaluate(board, plyFromRoot);
 
+    int originalAlpha = alpha;
+    int originalBeta = beta;
+
+    if (std::optional<TTEntry> entry = transpositionTable.probe(board, depth, alpha, beta)) {
+        return entry->evaluation;
+    }
+
     std::vector<Move> legalMoves = board.generateLegalMoves();
 
     if (legalMoves.empty()) {
@@ -126,6 +135,8 @@ int Engine::minimax(const Board& board, int depth, int plyFromRoot, int alpha, i
         if (beta <= alpha)
             break;
     }
+
+    transpositionTable.store(board, depth, bestEvaluation, originalAlpha, originalBeta);
 
     return bestEvaluation;
 }

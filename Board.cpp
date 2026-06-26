@@ -506,7 +506,8 @@ void Board::addPromotionMoves(std::vector<Move>& moves, int from, int to, bool w
 
 std::vector<Move> Board::generatePseudoLegalMoves(bool white) const {
 	std::vector<Move> moves;
-
+    moves.reserve(64);
+        
 	generatePawnMoves(moves, white);
 	generateKnightMoves(moves, white);
 	generateBishopMoves(moves, white);
@@ -865,7 +866,8 @@ std::vector<Move> Board::generateLegalMoves() const {
 	bool movingSide = white_to_move;
 	std::vector<Move> pseudo = generatePseudoLegalMoves(movingSide);
 	std::vector<Move> legal;
-
+    legal.reserve(pseudo.size());
+    
 	for (const Move& move : pseudo) {
 		Board copy = *this;
 		copy.makeMove(move);

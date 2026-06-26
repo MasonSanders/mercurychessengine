@@ -1,11 +1,11 @@
 CXX := g++
-CXXFLAGS := -std=c++23 -Wall -Wextra -Wpedantic -g
+CXXFLAGS := -std=c++23 -Wall -Wextra -Wpedantic -O3 -DNDEBUG
 
 TARGET := chess
-SRCS := main.cpp Board.cpp Engine.cpp
+SRCS := main.cpp Board.cpp Engine.cpp TranspositionTable.cpp
 OBJS := $(SRCS:.cpp=.o)
 
-HEADERS := Board.h Piece.h Move.h MoveType.h BitboardUtils.h Engine.h
+HEADERS := Board.h Piece.h Move.h MoveType.h BitboardUtils.h Engine.h TranspositionTable.h
 
 all: $(TARGET)
 
