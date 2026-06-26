@@ -1,6 +1,6 @@
 #include <algorithm>
-#include "TranspositionTable.h"
-#include "Piece.h"
+#include "../include/TranspositionTable.h"
+#include "../include/Piece.h"
 
 void TranspositionTable::clear() {
     entries.clear();

@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <thread>
 #include <vector>
-#include "Engine.h"
+#include "../include/Engine.h"
 
 Engine::Engine() 
     : rng(std::random_device{}()){

@@ -4,10 +4,10 @@
 #include <string>
 #include <array>
 #include <stdexcept>
-#include "Board.h"
-#include "Move.h"
-#include "MoveType.h"
-#include "Engine.h"
+#include "../include/Board.h"
+#include "../include/Move.h"
+#include "../include/MoveType.h"
+#include "../include/Engine.h"
 
 std::string squareToString(int square) {
 	char file = static_cast<char>('a' + (square % 8));

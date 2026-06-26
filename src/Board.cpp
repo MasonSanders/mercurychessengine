@@ -1,8 +1,8 @@
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
-#include "Board.h"
-#include "BitboardUtils.h"
+#include "../include/Board.h"
+#include "../include/BitboardUtils.h"
 
 Board::Board() {
 

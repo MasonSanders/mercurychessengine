@@ -2,23 +2,25 @@ CXX := g++
 CXXFLAGS := -std=c++23 -Wall -Wextra -Wpedantic -O3 -DNDEBUG -pthread
 
 TARGET := mercury
-SRCS := main.cpp Board.cpp Engine.cpp TranspositionTable.cpp
-OBJS := $(SRCS:.cpp=.o)
+SRCS := src/main.cpp src/Board.cpp src/Engine.cpp src/TranspositionTable.cpp
+OBJDIR := bin
+OBJS := $(SRCS:%.cpp=$(OBJDIR)/%.o)
 
-HEADERS := Board.h Piece.h Move.h MoveType.h BitboardUtils.h Engine.h TranspositionTable.h
+HEADERS := include/Board.h include/Piece.h include/Move.h include/MoveType.h include/BitboardUtils.h include/Engine.h include/TranspositionTable.h
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
 
-%.o: %.cpp $(HEADERS)
+$(OBJDIR)/%.o: %.cpp $(HEADERS)
+	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 run: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(OBJDIR) $(TARGET)
 
 .PHONY: all run clean
