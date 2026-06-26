@@ -23,6 +23,8 @@ public:
 
 private:
     int minimax(const Board& board, int depth, int plyFromRoot, int alpha, int beta) const;
+    void orderMoves(std::vector<Move>& moves, const Board& board) const;
+    int moveOrderingScore(const Board& board, const Move& move) const;
 
     std::mt19937 rng;
 

@@ -46,18 +46,7 @@ int Engine::evaluateMaterial(const Board& board) const {
 }
 
 int Engine::evaluate(const Board& board, int plyFromRoot) const {
-    if (board.isCheckmate()) {
-        if (board.isWhiteToMove()) {
-            return -MATE_SCORE + plyFromRoot;
-        }
-
-        return MATE_SCORE - plyFromRoot;
-    }
-
-    if (board.isStalemate()) {
-        return 0;
-    }
-
+    (void)plyFromRoot;
     return evaluateMaterial(board);
 }
 
@@ -66,6 +55,8 @@ SearchResult Engine::findBestMove(const Board& board, int depth) const {
 
     if (legalMoves.empty())
         throw std::runtime_error("Cannot find a move: no legal moves available.");
+
+    orderMoves(legalMoves, board);
 
     Move bestMove = legalMoves.front();
     int bestEvaluation = board.isWhiteToMove()
@@ -102,8 +93,17 @@ int Engine::minimax(const Board& board, int depth, int plyFromRoot, int alpha, i
 
     std::vector<Move> legalMoves = board.generateLegalMoves();
 
-    if (legalMoves.empty())
-        return evaluate(board, plyFromRoot);
+    if (legalMoves.empty()) {
+        if (board.isInCheck(board.isWhiteToMove())) {
+            return board.isWhiteToMove()
+                ? -MATE_SCORE + plyFromRoot
+                : MATE_SCORE - plyFromRoot;
+        }
+
+        return 0;
+    }
+
+    orderMoves(legalMoves, board);
 
     int bestEvaluation = board.isWhiteToMove()
         ? std::numeric_limits<int>::min()
@@ -128,4 +128,43 @@ int Engine::minimax(const Board& board, int depth, int plyFromRoot, int alpha, i
     }
 
     return bestEvaluation;
+}
+
+void Engine::orderMoves(std::vector<Move>& moves, const Board& board) const {
+    std::sort(moves.begin(), moves.end(), [&](const Move& a, const Move& b) {
+        return moveOrderingScore(board, a) > moveOrderingScore(board, b);
+    });
+}
+
+int Engine::moveOrderingScore(const Board& board, const Move& move) const {
+    int score = 0;
+
+    if (move.type == MoveType::Promotion ||
+        move.type == MoveType::PromotionCapture) {
+        score += PIECE_VALUES[move.promotion_piece] + 8000;
+    }
+
+    if (move.type == MoveType::Capture ||
+        move.type == MoveType::PromotionCapture ||
+        move.type == MoveType::EnPassant) {
+        int attacker = board.piece_index_at(move.from);
+        int victim = board.piece_index_at(move.to);
+
+        if (move.type == MoveType::EnPassant) {
+            victim = board.isWhiteToMove()
+                ? static_cast<int>(Piece::BP)
+                : static_cast<int>(Piece::WP);
+        }
+
+        if (attacker != -1 && victim != -1) {
+            score += 10000 + (10 * PIECE_VALUES[victim]) - PIECE_VALUES[attacker];
+        }
+    }
+
+    if (move.type == MoveType::KingCastle ||
+        move.type == MoveType::QueenCastle) {
+        score += 50;
+    }
+
+    return score;
 }
