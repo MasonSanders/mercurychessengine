@@ -8,3 +8,24 @@ Mercury is an actively maintained and updated CLI-based chess engine written in 
 - Transposition tables to avoid evaluating the same position twice.
 - Multithreading at the root level for parallel search.
 - Low-intermediate level playing strength.
+
+## Installation
+Mercury currently provides Linux x86_64 release packages for glibc and musl libc systems. The installer detects the user's libc and downloads the matching package from the latest GitHub release. If both glibc and musl are detected, it defaults to the glibc package.
+
+Install the latest release:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/MasonSanders/mercurychessengine/master/install.sh | sh
+```
+
+By default, Mercury is installed to `/usr/local/bin/mercury`. To install into a different directory:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/MasonSanders/mercurychessengine/master/install.sh | MERCURY_INSTALL_DIR="$HOME/.local/bin" sh
+```
+
+To install a specific release version:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/MasonSanders/mercurychessengine/master/install.sh | MERCURY_VERSION=1.0.0 sh
+```
