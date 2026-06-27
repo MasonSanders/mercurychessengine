@@ -78,6 +78,17 @@ latest_tag() {
 		sed 's#.*/tag/##'
 }
 
+asset_version_from_tag() {
+	if [ -n "${MERCURY_ASSET_VERSION:-}" ]; then
+		echo "$MERCURY_ASSET_VERSION"
+		return
+	fi
+
+	echo "$1" |
+		sed 's/^v//' |
+		sed 's/-release$//'
+}
+
 install_binary() {
 	src="$1"
 	dst="$INSTALL_DIR/$BINARY_NAME"
@@ -102,7 +113,7 @@ os="$(detect_os)"
 arch="$(detect_arch)"
 libc="$(detect_libc)"
 tag="$(latest_tag)"
-version="${tag#v}"
+version="$(asset_version_from_tag "$tag")"
 
 [ -n "$version" ] || die "could not determine latest Mercury release version"
 
@@ -116,8 +127,8 @@ archive="$tmpdir/$asset"
 checksum="$archive.sha256"
 
 echo "Downloading Mercury $version for $os/$arch/$libc..."
-curl -fsSL "$base_url/$asset" -o "$archive"
-curl -fsSL "$base_url/$asset.sha256" -o "$checksum"
+curl -fsSL "$base_url/$asset" -o "$archive" || die "failed to download $base_url/$asset"
+curl -fsSL "$base_url/$asset.sha256" -o "$checksum" || die "failed to download $base_url/$asset.sha256"
 
 expected="$(awk '{print $1; exit}' "$checksum")"
 actual="$(sha256sum "$archive" | awk '{print $1; exit}')"
